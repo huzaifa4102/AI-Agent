@@ -2,6 +2,8 @@ require("dotenv").config();
 const axios = require("axios");
 const { createTrelloCard } = require("./trello.service");
 const { sendConfirmationEmail } = require("./email.service");
+const Client = require("../models/Client");
+const Project = require("../models/Project");
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -56,16 +58,32 @@ WHY CHOOSE DS TECHNOLOGIES:
 - Money back guarantee if not satisfied in first week
 - NDA available for confidential projects
 
-YOUR SALES BEHAVIOR RULES:
-- Always give specific price ranges and time estimates
-- Be confident, enthusiastic, and professional
-- If client shares project details, give instant detailed quote
-- Always mention money back guarantee and free 30 day support
-- Use plain text only, no markdown, no asterisks
-- IMPORTANT: When a client confirms they want to proceed, say they are interested, or provides their name and email together, always respond with this exact format at the end of your reply:
-  CONFIRMED|clientName|clientEmail|projectSummary
-- Ask for name and email naturally during conversation to collect their details
-- CRITICAL: Keep all replies under 500 characters for WhatsApp. Be very short and concise.`;
+YOUR CONVERSATION FLOW — FOLLOW THIS STRICTLY IN ORDER:
+
+Step 1: Greet the client warmly and ask what kind of project they are looking for.
+Step 2: Listen to their project requirements and give a detailed quote with price range and timeline.
+Step 3: Handle any objections like high pricing or timeline concerns professionally and confidently.
+Step 4: If client asks for discount, you can offer maximum 20% discount to close the deal.
+Step 5: Keep convincing the client until they clearly say YES or agree to move forward.
+Step 6: ONLY after client agrees — ask for their full name, email and phone number.
+Step 7: ONLY after you have all three — name, email and phone — send the CONFIRMED tag.
+
+YOUR RESPONSE STYLE:
+- Write 3 to 4 lines per reply, professional and conversational
+- Write in plain sentences, no bullet points, no markdown, no asterisks
+- Be warm, confident and persuasive like a real senior sales consultant
+- Always mention money back guarantee and free 30 day support when quoting
+- If client budget is low, explain the value we provide and try to meet in the middle
+
+CONFIRMED TAG RULES — STRICTLY FOLLOW:
+- NEVER ask for name, email or phone until client has clearly agreed to proceed
+- NEVER send CONFIRMED tag during general conversation
+- ONLY send CONFIRMED tag when client has agreed AND you have name + email + phone
+- projectSummary must contain ONLY the project description, technology needs and budget
+- NEVER include phone number, email or name inside projectSummary
+- Example: CONFIRMED|Ali Huzaifa|ali@gmail.com|+923001234567|Client wants a web complaint app with postal code search and MP contact feature, budget $1500, timeline 6 weeks
+- Format: CONFIRMED|clientName|clientEmail|clientPhone|projectSummary
+- This tag must be invisible to client — it will be removed before sending`;
 
 const runAgent = async ({ clientPhone, message, channel = "whatsapp" }) => {
   if (!conversationHistory[clientPhone]) {
@@ -76,6 +94,7 @@ const runAgent = async ({ clientPhone, message, channel = "whatsapp" }) => {
     clientData[clientPhone] = {
       name: null,
       email: null,
+      phone: null,
       project: null,
     };
   }
@@ -100,7 +119,7 @@ const runAgent = async ({ clientPhone, message, channel = "whatsapp" }) => {
           ...conversationHistory[clientPhone],
         ],
         temperature: 0.6,
-        max_tokens: 150,
+        max_tokens: 300,
       },
       {
         headers: {
@@ -121,30 +140,105 @@ const runAgent = async ({ clientPhone, message, channel = "whatsapp" }) => {
 
   // Check if AI detected a confirmation
   if (reply.includes("CONFIRMED|")) {
-    const parts = reply.split("CONFIRMED|")[1].split("|");
-    const clientName = parts[0]?.trim();
-    const clientEmail = parts[1]?.trim();
-    const projectSummary = parts[2]?.trim();
+
+    // Split by CONFIRMED| to get the tag part
+    const confirmedPart = reply.split("CONFIRMED|")[1];
+    const parts = confirmedPart.split("|");
+
+    const clientName    = parts[0]?.trim();
+    const clientEmail   = parts[1]?.trim();
+    const clientMobile  = parts[2]?.trim();
+
+    // Join remaining parts — project summary may contain spaces
+    let projectSummary  = parts.slice(3).join(" ").trim();
+
+    // Clean phone number from project summary if AI accidentally included it
+    if (clientMobile && projectSummary) {
+      projectSummary = projectSummary
+        .replace(clientMobile, "")
+        .replace(/phone\s*:?\s*[\+\d\s\-\(\)]+/gi, "")
+        .replace(/contact\s*:?\s*[\+\d\s\-\(\)]+/gi, "")
+        .replace(/\|\s*$/, "")
+        .trim();
+    }
+
+    // If project summary is empty, build from conversation history
+    if (!projectSummary || projectSummary.length < 10) {
+      const history = conversationHistory[clientPhone] || [];
+      const userMessages = history
+        .filter(m => m.role === "user")
+        .map(m => m.content)
+        .join(". ");
+      projectSummary = userMessages.substring(0, 300);
+    }
+
+    // Use clientMobile if provided, otherwise fall back to WhatsApp number
+    const finalPhone = clientMobile || clientPhone;
 
     // Remove the CONFIRMED line from the reply shown to client
     reply = reply.split("CONFIRMED|")[0].trim();
 
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log(`🎯 Client confirmed!`);
+    console.log(`   Name:    ${clientName}`);
+    console.log(`   Email:   ${clientEmail}`);
+    console.log(`   Phone:   ${finalPhone}`);
+    console.log(`   Channel: ${channel}`);
+    console.log(`   Project: ${projectSummary}`);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
     if (clientName && clientEmail && projectSummary) {
-      console.log(`🎯 Client confirmed! Name: ${clientName} Email: ${clientEmail}`);
+
+      // Save client to MongoDB
+      try {
+        await Client.findOneAndUpdate(
+          { email: clientEmail },
+          {
+            name: clientName,
+            email: clientEmail,
+            phone: finalPhone,
+            channel: channel,
+            projectDetails: projectSummary,
+            status: "lead",
+          },
+          { upsert: true, new: true }
+        );
+        console.log("✅ Client saved to MongoDB");
+      } catch (err) {
+        console.error("❌ Client save error:", err.message);
+      }
+
+      // Save project to MongoDB
+      try {
+        await Project.create({
+          clientName,
+          clientEmail,
+          title: `Project — ${clientName}`,
+          description: projectSummary,
+          status: "new",
+          channel,
+        });
+        console.log("✅ Project saved to MongoDB");
+      } catch (err) {
+        console.error("❌ Project save error:", err.message);
+      }
 
       // Create Trello card
       await createTrelloCard({
         clientName,
         clientEmail,
+        clientPhone: finalPhone,
         projectDetails: projectSummary,
         channel,
       });
 
-      // Send confirmation email
+      // Send both emails
       await sendConfirmationEmail({
         clientName,
         clientEmail,
+        clientPhone: finalPhone,
         projectDetails: projectSummary,
+        channel,
       });
     }
   }

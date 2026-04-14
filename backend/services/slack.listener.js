@@ -15,6 +15,7 @@ const startSlackBot = async () => {
     const reply = await runAgent({
       clientPhone: `slack_${userId}`,
       message: text,
+      channel: "slack",
     });
 
     console.log(`🤖 Slack AI Reply: ${reply}`);
@@ -34,6 +35,7 @@ const startSlackBot = async () => {
     const reply = await runAgent({
       clientPhone: `slack_${userId}`,
       message: text,
+      channel: "slack",
     });
 
     await say(reply);
