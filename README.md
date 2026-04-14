@@ -172,45 +172,6 @@ Then paste the ngrok URL in your Twilio Sandbox settings:
 ```
 https://your-ngrok-url.ngrok-free.app/api/whatsapp/webhook
 ```
-
----
-
-## 🔐 Environment Variables
-
-Create a `backend/.env` file with the following keys:
-
-```env
-# Server
-PORT=5000
-
-# MongoDB
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/aiagent
-
-# Groq AI (Free)
-GROQ_API_KEY=your_groq_api_key
-
-# Twilio — WhatsApp
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-
-# Slack
-SLACK_BOT_TOKEN=xoxb-your-bot-token
-SLACK_SIGNING_SECRET=your-signing-secret
-SLACK_APP_TOKEN=xapp-your-app-token
-
-# Trello
-TRELLO_API_KEY=your_trello_api_key
-TRELLO_TOKEN=your_trello_token
-TRELLO_LIST_ID=your_list_id
-
-# Email (Gmail)
-EMAIL_USER=your@gmail.com
-EMAIL_APP_PASS=your_16_char_app_password
-```
-
-> ⚠️ Never push your `.env` file to GitHub. It is already included in `.gitignore`.
-
 ---
 
 ## ⚙️ How It Works
