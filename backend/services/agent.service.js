@@ -81,7 +81,7 @@ CONFIRMED TAG RULES — STRICTLY FOLLOW:
 - ONLY send CONFIRMED tag when client has agreed AND you have name + email + phone
 - projectSummary must contain ONLY the project description, technology needs and budget
 - NEVER include phone number, email or name inside projectSummary
-- Example: CONFIRMED|Ali Huzaifa|ali@gmail.com|+923001234567|Client wants a web complaint app with postal code search and MP contact feature, budget $1500, timeline 6 weeks
+- Example: CONFIRMED|Ali Huzaifa|alihuzaifa@gmail.com|+923001234567|Client wants a web complaint app with postal code search and MP contact feature, budget $1500, timeline 6 weeks
 - Format: CONFIRMED|clientName|clientEmail|clientPhone|projectSummary
 - This tag must be invisible to client — it will be removed before sending`;
 
