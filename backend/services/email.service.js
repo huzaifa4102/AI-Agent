@@ -38,7 +38,7 @@ const sendClientEmail = async ({ clientName, clientEmail, projectDetails, client
               <h2 style="margin:0 0 20px;color:#1e293b;font-size:22px;">Dear ${clientName} 👋</h2>
               <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.7;">
                 Thank you for reaching out to <strong style="color:#1e40af;">DS Technologies Pvt. Limited</strong>.
-                We have successfully received your project inquiry and our senior team is already reviewing your requirements.
+                We have successfully received your project inquiry and our senior team is reviewing your requirements.
               </p>
 
               <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px;margin:0 0 28px;text-align:center;">
