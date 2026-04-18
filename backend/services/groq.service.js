@@ -6,7 +6,7 @@ const callGroq = async (messages) => {
   const response = await axios.post(
     GROQ_API_URL,
     {
-      model: "llama-3.3-70b-versatile",   // free, fast, very capable
+      model: "llama-3.3-70b-versatile",   
       messages: [
         {
           role: "system",
