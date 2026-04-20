@@ -18,7 +18,7 @@ const startSlackBot = async () => {
       channel: "slack",
     });
 
-    console.log(`🤖 Slack AI Reply: ${reply}`);
+    // console.log(`🤖 Slack AI Reply: ${reply}`);
 
     await say(reply);
   });
