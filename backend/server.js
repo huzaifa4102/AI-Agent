@@ -41,6 +41,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+app.use("/api/auth", require("./routes/auth.route"));
+
 app.use("/api/agent", require("./routes/agent.route"));
 app.use("/api/whatsapp", require("./routes/whatsapp.route"));
 app.use("/api/dashboard", require("./routes/dashboard.route"));
