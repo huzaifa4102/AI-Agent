@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 const API = `${import.meta.env.VITE_API_URL}/api/dashboard`;
 
@@ -180,10 +181,24 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  // const fetchAll = async (isRef = false) => {
+  //   try {
+  //     isRef ? setRefreshing(true) : setLoading(true);
+  //     const [s, c, p] = await Promise.all([axios.get(`${API}/stats`), axios.get(`${API}/clients`), axios.get(`${API}/projects`)]);
+  //     setStats(s.data); setClients(c.data); setProjects(p.data);
+  //   } catch(e){ console.error(e); }
+  //   finally { setLoading(false); setRefreshing(false); }
+  // };
+
   const fetchAll = async (isRef = false) => {
     try {
       isRef ? setRefreshing(true) : setLoading(true);
-      const [s, c, p] = await Promise.all([axios.get(`${API}/stats`), axios.get(`${API}/clients`), axios.get(`${API}/projects`)]);
+      const [s, c, p] = await Promise.all([
+        axios.get(`${API}/stats`),
+        axios.get(`${API}/clients`),
+        axios.get(`${API}/projects`),
+        new Promise(resolve => setTimeout(resolve, 3000)),
+      ]);
       setStats(s.data); setClients(c.data); setProjects(p.data);
     } catch(e){ console.error(e); }
     finally { setLoading(false); setRefreshing(false); }
@@ -227,15 +242,40 @@ export default function Dashboard() {
     <th style={{ textAlign:"left", fontSize:10, fontWeight:700, color:t.textSoft, padding:"12px 18px", letterSpacing:".7px", textTransform:"uppercase", whiteSpace:"nowrap", borderBottom:`1px solid ${t.border}`, background:t.surfaceAlt }}>{children}</th>
   );
 
+  // if (loading) return (
+  //   <div style={{ minHeight:"100vh", background:isDark?"#080c18":"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center" }}>
+  //     <style>{CSS}</style>
+  //     <div style={{ textAlign:"center" }}>
+  //       <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid #6366f133", borderTopColor:"#6366f1", animation:"spin .9s linear infinite", margin:"0 auto 16px" }} />
+  //       <p style={{ color:"#6366f1", fontSize:12, fontWeight:800, letterSpacing:"1.5px" }}>LOADING</p>
+  //     </div>
+  //   </div>
+  // );
+
+
   if (loading) return (
-    <div style={{ minHeight:"100vh", background:isDark?"#080c18":"#f0f4ff", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <style>{CSS}</style>
-      <div style={{ textAlign:"center" }}>
-        <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid #6366f133", borderTopColor:"#6366f1", animation:"spin .9s linear infinite", margin:"0 auto 16px" }} />
-        <p style={{ color:"#6366f1", fontSize:12, fontWeight:800, letterSpacing:"1.5px" }}>LOADING</p>
-      </div>
+  <div style={{
+    minHeight: "100vh",
+    background: "#f8fafc",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "system-ui",
+  }}>
+    <style>{CSS}</style>
+    <div style={{ width: 200, height: 200 }}>
+      <DotLottieReact
+        src="https://lottie.host/76e0224b-046b-4264-92c1-9d72be9d6e31/tXiVXwOjCi.lottie"
+        loop
+        autoplay
+      />
     </div>
-  );
+    <p style={{ color: "#94a3b8", fontSize: 14, fontWeight: 600, marginTop: 8 }}>
+      Loading your dashboard...
+    </p>
+  </div>
+);
 
   return (
     <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'DM Sans',system-ui,sans-serif", color:t.text, transition:"background .3s,color .3s" }}>
